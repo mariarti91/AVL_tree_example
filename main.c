@@ -101,13 +101,6 @@ node* clear_tree(node* root){
     return NULL;
 }
 
-void print_tree(node* root){
-    if(root == NULL) return;
-    print_tree(root->left);
-    printf("%d %d\n", root->data, root->h);
-    print_tree(root->right);
-}
-
 node* remove_from_tree(node* root, int value){
 	if(root == NULL) return NULL;
 
@@ -143,24 +136,99 @@ node* remove_from_tree(node* root, int value){
 	return balanceTree(root);
 }
 
+typedef struct struct_item{
+	void *payload;
+	struct struct_item* next;
+} item;
+
+typedef struct struct_queue{
+	item* begin;
+	item* end;
+}queue;
+
+queue* create_queue(){
+	queue* res = malloc(sizeof(queue));
+	res->begin = NULL;
+	res->end = NULL;
+	return res;
+}
+
+void queue_push(queue* q, void *payload){
+	item *i = malloc(sizeof(item));
+	i->next = NULL;
+	i->payload = payload;
+
+	if(q->end == NULL){
+		q->begin = i;
+		q->end = i;
+	}else{
+		q->end->next = i;
+		q->end = i;
+	}
+}
+
+void* queue_pop(queue *q){
+	if(q->begin == NULL) return NULL;
+	item *current = q->begin;
+	q->begin = q->begin->next;
+	if(q->begin == NULL) q->end = NULL;
+	void* payload = current->payload;
+	free(current);
+	return payload;
+}
+
+void print_tree( node* root){
+	queue* q_current = NULL;
+	queue* q_next = create_queue();
+	queue_push(q_next, (void *) root);
+
+
+	puts("------BEGIN TREE------");
+	int isNotLastLevel;
+	do{
+		free(q_current);
+		q_current = q_next;
+		q_next = create_queue();
+		void* payload;
+
+		isNotLastLevel = 0;
+		while(q_current->begin != NULL){
+			payload = queue_pop(q_current);
+			if(payload != NULL){
+				node* n = (node *)payload;
+				printf("%d ", n->data);
+				queue_push(q_next, n->left);
+				queue_push(q_next, n->right);
+				isNotLastLevel = isNotLastLevel || n->left || n->right;
+			}else{
+				printf("_ ");
+				queue_push(q_next, NULL);
+				queue_push(q_next, NULL);
+			}
+		}
+		puts("");
+	} while(isNotLastLevel);
+	puts("-------END TREE-------");
+
+	free(q_current);
+	while(q_next->begin != NULL) queue_pop(q_next);
+	free(q_next);
+}
+
 int main() {
     node* t = NULL;
-//    t = insert_in_tree(t, 3);
-//    t = insert_in_tree(t, 7);
-//    t = insert_in_tree(t, 5);
-//    t = insert_in_tree(t, 13);
-//    t = insert_in_tree(t, 17);
-//    t = insert_in_tree(t, 15);
-//    t = insert_in_tree(t, 10);
-//    t = insert_in_tree(t, 9);
-//    t = insert_in_tree(t, 11);
-    for(int i = 1; i < 16; ++i)
-        t = insert_in_tree(t, i);
-    print_tree(t);
-	puts("----");
-    t = remove_from_tree(t, 8);
-	print_tree(t);
-	puts("----");
+    for(int i = 1; i < 16; ++i){
+    	printf("insert value %d\n", i);
+	    t = insert_in_tree(t, i);
+		print_tree(t);
+    }
+
+    for(int i = 8; i < 16; ++i){
+	    printf("remove value %d\n", i);
+	    t = remove_from_tree(t, i);
+	    print_tree(t);
+    }
+
     t = clear_tree(t);
 	return 0;
 }
