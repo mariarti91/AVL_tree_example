@@ -76,15 +76,15 @@ node* balanceTree(node* n){
     }
 }
 
-node* insert(node* root, int value){
+node* insert_in_tree( node* root, int value){
     if(root == NULL){
         return create_node(value);
     }
 
     if(value < root->data){
-        root->left = insert(root->left, value);
+        root->left = insert_in_tree(root->left, value);
     } else if (value > root->data){
-        root->right = insert(root->right, value);
+        root->right = insert_in_tree(root->right, value);
     } else return root;
 
     root->h = calcH(root);
@@ -108,21 +108,59 @@ void print_tree(node* root){
     print_tree(root->right);
 }
 
+node* remove_from_tree(node* root, int value){
+	if(root == NULL) return NULL;
+
+	if(root->data == value){
+		if(root->left == NULL){
+			if(root->right == NULL){
+				free(root);
+				return NULL;
+			} else {
+				node *newRoot = root->right;
+				free(root);
+				return newRoot;
+			}
+		}else{
+			if(root->right == NULL){
+				node *newRoot = root->left;
+				free(root);
+				return newRoot;
+			} else {
+				node *minRightValue = root->right;
+				while(minRightValue->left != NULL) minRightValue = minRightValue->left;
+				root->data = minRightValue->data;
+				root->right = remove_from_tree(root->right, root->data);
+			}
+		}
+	} else if(root->data > value){
+		root->left = remove_from_tree(root->left, value);
+	} else {
+		root->right = remove_from_tree(root->right, value);
+	}
+
+	root->h = calcH(root);
+	return balanceTree(root);
+}
+
 int main() {
     node* t = NULL;
-//    t = insert(t, 3);
-//    t = insert(t, 7);
-//    t = insert(t, 5);
-//    t = insert(t, 13);
-//    t = insert(t, 17);
-//    t = insert(t, 15);
-//    t = insert(t, 10);
-//    t = insert(t, 9);
-//    t = insert(t, 11);
+//    t = insert_in_tree(t, 3);
+//    t = insert_in_tree(t, 7);
+//    t = insert_in_tree(t, 5);
+//    t = insert_in_tree(t, 13);
+//    t = insert_in_tree(t, 17);
+//    t = insert_in_tree(t, 15);
+//    t = insert_in_tree(t, 10);
+//    t = insert_in_tree(t, 9);
+//    t = insert_in_tree(t, 11);
     for(int i = 1; i < 16; ++i)
-        t = insert(t, i);
+        t = insert_in_tree(t, i);
     print_tree(t);
+	puts("----");
+    t = remove_from_tree(t, 8);
+	print_tree(t);
+	puts("----");
     t = clear_tree(t);
-    print_tree(t);
-    return 0;
+	return 0;
 }
